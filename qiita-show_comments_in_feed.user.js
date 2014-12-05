@@ -11,8 +11,6 @@
 // @license        CC0
 // ==/UserScript==
 
-// Note: I've never tested whether a new comment form works.
-
 location.href = 'javascript:void(' + function(){
   document.addEventListener('click', function(event){
     if(!event.target.classList.contains('expand')) return;
@@ -73,7 +71,7 @@ location.href = 'javascript:void(' + function(){
         enableAsyncPost: !1
       });
 
-      /* Enable the new comment form? */
+      /* Enable the new comment form */
       new Qiita.views.items.NewCommentView({
         el: $comments.querySelector('.js-new-comment'),
         collection: item.comments,
