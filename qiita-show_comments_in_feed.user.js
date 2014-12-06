@@ -72,11 +72,42 @@ location.href = 'javascript:void(' + function(){
       });
 
       /* Enable the new comment form */
-      new Qiita.views.items.NewCommentView({
-        el: $comments.querySelector('.js-new-comment'),
-        collection: item.comments,
-        enableAsyncPost: !1
-      });
+      try{
+        var newCommentEl = $comments.querySelector('.js-new-comment');
+        var ncv = new Qiita.views.items.NewCommentView({
+          el: newCommentEl,
+          collection: item.comments,
+          enableAsyncPost: !1
+        });
+
+        var formEl = ncv.formView.$el;
+        var actionUrl = (function(){
+          /*
+           Absolutify action URL.
+           As `action` is either `/comments` or `/comments/{id}`
+           for now, this is not necessary.
+           Added as a precaution.
+           */
+          var a = responseDocument.createElement('a');
+          a.setAttribute('href', formEl.attr('action'));
+          return a.href;
+        })();
+        formEl.submit = function(){
+          jQuery.post(actionUrl, ncv.formView.$el.serialize(), null, 'html')
+            .then(null, function(){
+              Qiita.notification.error('[UserScript: Qiita: Show comments in feed] Fail to submit.');
+              return jQuery.Deferred(); /* Cancel following chains */
+            }).done(function(){
+              /* Rebuild comments */
+              $comments.remove();
+              insertComment($itemBox);
+            }).fail(function(){
+              Qiita.notification.error('[UserScript: Qiita: Show comments in feed] Fail to render comments.');
+            });
+        };
+      }catch(e){
+        newCommentEl.style.display = 'none';
+      }
     };
     xhr.responseType = 'document';
     xhr.send();
