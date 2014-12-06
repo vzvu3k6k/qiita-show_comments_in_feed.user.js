@@ -21,8 +21,36 @@ location.href = 'javascript:void(' + function(){
       if(target.classList.contains('item-box')) break;
       target = target.parentNode;
     }
+
+    /* Quit if comments has already been inserted  */
+    if(target.querySelector('.js-comments')) return;
+
+    /*
+     Just add a 'Write a comment' button if there are no comments
+     to reduce requests
+     */
+    var $faComment = target.querySelector('.fa-comment-o');
+    if($faComment === null ||
+       $faComment.parentNode.textContent.trim() === '0' /* for /public */
+    ){
+      insertWriteCommentButton(target);
+      return;
+    }
+
     insertComment(target);
   });
+
+  function insertWriteCommentButton($itemBox){
+    var $button = document.createElement('a');
+    $button.setAttribute('class', 'btn btn-primary');
+    $button.setAttribute('href', 'javascript:void(0)');
+    $button.textContent = I18n.lookup('js.item_box.comment') || 'Comment';
+    $button.addEventListener('click', function(event){
+      $button.remove();
+      insertComment($itemBox);
+    });
+    $itemBox.querySelector('.item-body-wrapper').appendChild($button);
+  }
 
   /*
    Comments for a specified post can be retrieved with Qiita API v2.
@@ -31,15 +59,6 @@ location.href = 'javascript:void(' + function(){
    So I choose to scrape comments from a HTML page.
    */
   function insertComment($itemBox){
-    /* Quit if comments has already been inserted  */
-    if($itemBox.querySelector('.js-comments')) return;
-
-    /* Quit if there are no comments */
-    var $faComment = $itemBox.querySelector('.fa-comment-o');
-    if($faComment === null ||
-       $faComment.parentNode.textContent.trim() === '0' /* for /public */ )
-      return;
-
     var xhr = new XMLHttpRequest();
     var itemUrl = $itemBox.querySelector('.item-box-title a').href;
     xhr.open('GET', itemUrl);
