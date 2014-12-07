@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Qiita: Show comments in feed
 // @description    When a post is opened in feed, inserts comments for it
-// @version        0.2
+// @version        0.3
 // @author         vzvu3k6k
 // @match          http://qiita.com/
 // @match          http://qiita.com/public
