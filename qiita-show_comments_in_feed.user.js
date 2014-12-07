@@ -43,12 +43,22 @@ location.href = 'javascript:void(' + function(){
   function insertWriteCommentButton($itemBox){
     var $button = document.createElement('a');
     $button.setAttribute('class', 'btn btn-primary');
-    $button.setAttribute('href', 'javascript:void(0)');
     $button.textContent = I18n.lookup('js.item_box.comment') || 'Comment';
-    $button.addEventListener('click', function(event){
-      $button.remove();
-      insertComment($itemBox);
-    });
+
+    if(enableNewCommentForm) {
+      $button.setAttribute('href', 'javascript:void(0)');
+      $button.addEventListener('click', function(event){
+        $button.remove();
+        insertComment($itemBox);
+      });
+    }else{
+      $button.setAttribute(
+        'href',
+        $itemBox.querySelector('.item-box-title a').href + '#new_comment'
+      );
+      $button.setAttribute('target', '_blank');
+    }
+
     $itemBox.querySelector('.item-body-wrapper').appendChild($button);
   }
 
