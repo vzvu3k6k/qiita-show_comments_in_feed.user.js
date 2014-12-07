@@ -88,7 +88,7 @@ location.href = 'javascript:void(' + function(){
         new Qiita.views.items.CommentListView({
           el: $comments.querySelector('.js-comments'),
           collection: item.comments,
-          enableAsyncPost: !1
+          enableAsyncPost: false
         });
       }catch(e){ }
 
@@ -100,7 +100,7 @@ location.href = 'javascript:void(' + function(){
         var ncv = new Qiita.views.items.NewCommentView({
           el: newCommentEl,
           collection: item.comments,
-          enableAsyncPost: !1
+          enableAsyncPost: false
         });
 
         /*
