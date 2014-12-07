@@ -144,7 +144,7 @@ location.href = 'javascript:void(' + function(){
       ['Qiita.views.items.NewCommentView.prototype.resetFormView', 232],
       ['Qiita.views.items.CommentFormView.prototype.onClickSubmit', 53],
       ['Qiita.views.items.CommentFormView.prototype.submit', 177]
-    ].all(function(i){
+    ].every(function(i){
       return eval(i[0]).toString().length === i[1];
     });
   }catch(e){ }
