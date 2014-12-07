@@ -104,6 +104,7 @@ location.href = 'javascript:void(' + function(){
         $$newComment.style.display = 'none';
       }
 
+      /* Open a new window when posting or deleting a comment */
       Array.prototype.forEach.call(
         $comments.querySelectorAll(
           '.commentHeader_deleteButton a, form'
