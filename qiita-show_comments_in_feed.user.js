@@ -93,12 +93,12 @@ location.href = 'javascript:void(' + function(){
       }catch(e){ }
 
       /* Enable/Disable the new comment form */
-      var newCommentEl = $comments.querySelector('.js-new-comment');
+      var $$newComment = $comments.querySelector('.js-new-comment');
       try{
         if(!enableNewCommentForm) throw 'new comment form is disabled';
 
-        var ncv = new Qiita.views.items.NewCommentView({
-          el: newCommentEl,
+        var newCommentView = new Qiita.views.items.NewCommentView({
+          el: $$newComment,
           collection: item.comments,
           enableAsyncPost: false
         });
@@ -111,12 +111,12 @@ location.href = 'javascript:void(' + function(){
          */
         var actionUrl = (function(){
           var a = responseDocument.createElement('a');
-          a.setAttribute('href', ncv.formView.$el.attr('action'));
+          a.setAttribute('href', newCommentView.formView.$el.attr('action'));
           return a.href;
         })();
 
-        ncv.formView.$el.submit = function(){
-          jQuery.post(actionUrl, ncv.formView.$el.serialize(), null, 'html')
+        newCommentView.formView.$el.submit = function(){
+          jQuery.post(actionUrl, newCommentView.formView.$el.serialize(), null, 'html')
             .then(null, function(){
               Qiita.notification.error('[UserScript: Qiita: Show comments in feed] Fail to submit.');
               return jQuery.Deferred(); /* Cancel following chains */
@@ -129,7 +129,7 @@ location.href = 'javascript:void(' + function(){
             });
         };
       }catch(e){
-        newCommentEl.style.display = 'none';
+        $$newComment.style.display = 'none';
       }
     };
     xhr.responseType = 'document';
