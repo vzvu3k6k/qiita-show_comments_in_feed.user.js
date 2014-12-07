@@ -90,28 +90,30 @@ location.href = 'javascript:void(' + function(){
         enableAsyncPost: !1
       });
 
-      /* Enable the new comment form */
+      /* Enable/Disable the new comment form */
+      var newCommentEl = $comments.querySelector('.js-new-comment');
       try{
-        var newCommentEl = $comments.querySelector('.js-new-comment');
+        if(!enableNewCommentForm) throw 'new comment form is disabled';
+
         var ncv = new Qiita.views.items.NewCommentView({
           el: newCommentEl,
           collection: item.comments,
           enableAsyncPost: !1
         });
 
-        var formEl = ncv.formView.$el;
+        /*
+         Absolutify action URL.
+         As `action` is either `/comments` or `/comments/{id}`
+         for now, this is not necessary.
+         Added as a precaution.
+         */
         var actionUrl = (function(){
-          /*
-           Absolutify action URL.
-           As `action` is either `/comments` or `/comments/{id}`
-           for now, this is not necessary.
-           Added as a precaution.
-           */
           var a = responseDocument.createElement('a');
-          a.setAttribute('href', formEl.attr('action'));
+          a.setAttribute('href', ncv.formView.$el.attr('action'));
           return a.href;
         })();
-        formEl.submit = function(){
+
+        ncv.formView.$el.submit = function(){
           jQuery.post(actionUrl, ncv.formView.$el.serialize(), null, 'html')
             .then(null, function(){
               Qiita.notification.error('[UserScript: Qiita: Show comments in feed] Fail to submit.');
@@ -131,4 +133,18 @@ location.href = 'javascript:void(' + function(){
     xhr.responseType = 'document';
     xhr.send();
   }
+
+  /* Check roughly if relevant codes are not changed */
+  var enableNewCommentForm = false;
+  try{
+    enableNewCommentForm = [
+      ['Qiita.views.items.NewCommentView.prototype.initialize', 153],
+      ['Qiita.views.items.NewCommentView.prototype.resetFormView', 232],
+      ['Qiita.views.items.CommentFormView.prototype.onClickSubmit', 53],
+      ['Qiita.views.items.CommentFormView.prototype.submit', 177]
+    ].all(function(i){
+      return eval(i[0]).toString().length === i[1];
+    });
+  }catch(e){ }
+
 } + ')()';
