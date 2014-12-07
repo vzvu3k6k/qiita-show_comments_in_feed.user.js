@@ -84,11 +84,13 @@ location.href = 'javascript:void(' + function(){
       );
 
       /* Enable "Thank" buttons */
-      new Qiita.views.items.CommentListView({
-        el: $comments.querySelector('.js-comments'),
-        collection: item.comments,
-        enableAsyncPost: !1
-      });
+      try{
+        new Qiita.views.items.CommentListView({
+          el: $comments.querySelector('.js-comments'),
+          collection: item.comments,
+          enableAsyncPost: !1
+        });
+      }catch(e){ }
 
       /* Enable/Disable the new comment form */
       var newCommentEl = $comments.querySelector('.js-new-comment');
