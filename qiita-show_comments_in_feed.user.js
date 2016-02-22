@@ -145,12 +145,9 @@ window.addEventListener('load', () => {
       $comments.removeAttribute('id');
 
       // Fix relative links
-      Array.prototype.forEach.call(
-        $comments.querySelectorAll('a'),
-        (i) => {
-          i.setAttribute('href', i.href);
-        }
-      );
+      for (const $link of $comments.querySelectorAll('a')) {
+        $link.setAttribute('href', $link.href);
+      }
 
       $itemBox.querySelector('.item-body-wrapper').appendChild($comments);
 
@@ -184,14 +181,9 @@ window.addEventListener('load', () => {
       }
 
       // Open a new window when posting or deleting a comment
-      Array.prototype.forEach.call(
-        $comments.querySelectorAll(
-          '.commentHeader_deleteButton a, form'
-        ),
-        (i) => {
-          i.setAttribute('target', '_blank');
-        }
-      );
+      for (const $el of $comments.querySelectorAll('.commentHeader_deleteButton a, form')) {
+        $el.setAttribute('target', '_blank');
+      }
     };
     xhr.responseType = 'document';
     xhr.send();
