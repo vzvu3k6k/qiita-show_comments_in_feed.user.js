@@ -13,6 +13,8 @@
 // @license        CC0
 // ==/UserScript==
 
+/* global I18n */
+
 // Qiita uses browserify and we can't access its view or model modules directly.
 // Instead we get them by intercepting a browserify function call.
 function ModuleCollector() {
@@ -21,29 +23,29 @@ function ModuleCollector() {
   this.modules = [];
   this.exports = [];
 }
-ModuleCollector.prototype.getTrapCall = function () {
+ModuleCollector.prototype.getTrapCall = function getTrapCall() {
   let prevModules;
-  let self = this;
-  return function () {
+  const self = this;
+  return function trapCall(...args) {
     self.disable(); // Avoid infinite recursion
 
     // Function.prototype.toString() of Chromium keeps spaces,
     // but that of Firefox normalizes spaces like `function (require,module,exports)`.
-    var funcPattern = /^function\s*\(require,\s*module,\s*exports\)/;
+    const funcPattern = /^function\s*\(require,\s*module,\s*exports\)/;
     if (funcPattern.test(this.toString())) {
-      if (prevModules !== arguments[5]) {
-        prevModules = arguments[5];
-        self.modules.push(arguments[5]);
-        self.exports.push(arguments[6]);
+      if (prevModules !== args[5]) {
+        prevModules = args[5];
+        self.modules.push(args[5]);
+        self.exports.push(args[6]);
       }
     }
 
-    var retval = this.apply(arguments[0], Array.from(arguments).slice(1));
+    const retval = this.apply(args[0], args.slice(1));
     self.enable();
     return retval;
   };
 };
-ModuleCollector.prototype.enable = function () {
+ModuleCollector.prototype.enable = function enable() {
   Object.defineProperty(
     window.Function.prototype,
     'call',
@@ -53,7 +55,7 @@ ModuleCollector.prototype.enable = function () {
     }
   );
 };
-ModuleCollector.prototype.disable = function () {
+ModuleCollector.prototype.disable = function disable() {
   Object.defineProperty(
     window.Function.prototype,
     'call',
@@ -63,38 +65,37 @@ ModuleCollector.prototype.disable = function () {
     }
   );
 };
-ModuleCollector.prototype.getRequire = function (index) {
-  let modules = this.modules[index];
-  let exports = this.exports[index];
-  let moduleMap = {};
-  for (let key of Object.keys(modules)) {
-    let paths = modules[key][1];
-    for (let path of Object.keys(paths)) {
+ModuleCollector.prototype.getRequire = function getRequire(index) {
+  const modules = this.modules[index];
+  const exports = this.exports[index];
+  const moduleMap = {};
+  for (const key of Object.keys(modules)) {
+    const paths = modules[key][1];
+    for (const path of Object.keys(paths)) {
       moduleMap[path] = paths[path];
     }
   }
   return (path) => {
-    let module = exports[moduleMap[path]];
+    const module = exports[moduleMap[path]];
     if (module && module.exports) {
       return module.exports;
-    } else {
-      throw new Error(`[UserScript - Qiita: Show comments in feed] Cannot find module ${path}`);
     }
+    throw new Error(`[UserScript - Qiita: Show comments in feed] Cannot find module ${path}`);
   };
 };
 
-let moduleCollector = new ModuleCollector();
+const moduleCollector = new ModuleCollector();
 moduleCollector.enable();
 
 window.addEventListener('load', () => {
   moduleCollector.disable();
-  let require = moduleCollector.getRequire(0);
+  const require = moduleCollector.getRequire(0);
 
-  document.addEventListener('click', function (event) {
+  document.addEventListener('click', (event) => {
     if (!event.target.classList.contains('expand')) return;
 
-    var target = event.target;
-    while (1) {
+    let target = event.target;
+    for (;;) {
       if (target === document.documentElement) return;
       if (target.classList.contains('item-box')) break;
       target = target.parentNode;
@@ -105,25 +106,25 @@ window.addEventListener('load', () => {
 
     // Just add a 'Write a comment' button if there are no comments
     // to reduce requests
-    var $faComment = target.querySelector('.fa-comment-o');
+    const $faComment = target.querySelector('.fa-comment-o');
     if ($faComment === null ||
        $faComment.parentNode.textContent.trim() === '0' // for /public
       ) {
-      insertWriteCommentButton(target);
+      insertWriteCommentButton(target); // eslint-disable-line no-use-before-define
       return;
     }
 
-    insertComment(target);
+    insertComment(target); // eslint-disable-line no-use-before-define
   });
 
   function insertWriteCommentButton($itemBox) {
-    var $button = document.createElement('a');
+    const $button = document.createElement('a');
     $button.setAttribute('class', 'btn btn-primary');
-    $button.setAttribute('href', 'javascript:void(0)');
+    $button.setAttribute('href', '#comments');
     $button.textContent = I18n.lookup('js.item_box.comment') || 'Comment';
-    $button.addEventListener('click', function (event) {
+    $button.addEventListener('click', () => {
       $button.remove();
-      insertComment($itemBox);
+      insertComment($itemBox); // eslint-disable-line no-use-before-define
     });
     $itemBox.querySelector('.item-body-wrapper').appendChild($button);
   }
@@ -133,50 +134,50 @@ window.addEventListener('load', () => {
   // but Qiita markdown texts.
   // So I choose to scrape comments from a HTML page.
   function insertComment($itemBox) {
-    var xhr = new XMLHttpRequest();
-    var itemUrl = $itemBox.querySelector('.item-box-title a').href;
+    const xhr = new XMLHttpRequest();
+    const itemUrl = $itemBox.querySelector('.item-box-title a').href;
     xhr.open('GET', itemUrl);
-    xhr.onload = function () {
+    xhr.onload = () => {
       if (xhr.status !== 200) return;
 
-      var responseDocument = xhr.responseXML;
-      var $comments = responseDocument.querySelector('#comments');
+      const responseDocument = xhr.responseXML;
+      const $comments = responseDocument.querySelector('#comments');
       $comments.removeAttribute('id');
 
       // Fix relative links
       Array.prototype.forEach.call(
         $comments.querySelectorAll('a'),
-        function (i) {
+        (i) => {
           i.setAttribute('href', i.href);
         }
       );
 
       $itemBox.querySelector('.item-body-wrapper').appendChild($comments);
 
-      var item = new (require('../models/item'))(
+      const item = new (require('../models/item'))(
         JSON.parse(responseDocument.querySelector('#js-item').textContent)
       );
 
       // Enable "Thank" buttons
       try {
-        new (require('../views/items/comment_list_view'))({
+        new (require('../views/items/comment_list_view'))({ // eslint-disable-line no-new
           el: $comments.querySelector('.js-comments'),
           collection: item.comments,
-          enableAsyncPost: false
+          enableAsyncPost: false,
         });
       } catch (e) {
-        for (let btn of $comments.querySelectorAll('.js-thank-btn')) {
+        for (const btn of $comments.querySelectorAll('.js-thank-btn')) {
           btn.style.display = 'none';
         }
       }
 
       // Enable the new comment form
-      var $$newComment = $comments.querySelector('.js-new-comment');
+      const $$newComment = $comments.querySelector('.js-new-comment');
       try {
-        new (require('../views/items/new_comment_view'))({
+        new (require('../views/items/new_comment_view'))({ // eslint-disable-line no-new
           el: $$newComment,
           collection: item.comments,
-          enableAsyncPost: false
+          enableAsyncPost: false,
         });
       } catch (e) {
         $$newComment.style.display = 'none';
@@ -187,7 +188,7 @@ window.addEventListener('load', () => {
         $comments.querySelectorAll(
           '.commentHeader_deleteButton a, form'
         ),
-        function (i) {
+        (i) => {
           i.setAttribute('target', '_blank');
         }
       );
