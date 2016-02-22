@@ -21,10 +21,10 @@ function ModuleCollector() {
   this.modules = [];
   this.exports = [];
 }
-ModuleCollector.prototype.getTrapCall = function() {
+ModuleCollector.prototype.getTrapCall = function () {
   let prevModules;
   let self = this;
-  return function() {
+  return function () {
     self.disable(); // Avoid infinite recursion
 
     // Function.prototype.toString() of Chromium keeps spaces,
@@ -43,7 +43,7 @@ ModuleCollector.prototype.getTrapCall = function() {
     return retval;
   };
 };
-ModuleCollector.prototype.enable = function() {
+ModuleCollector.prototype.enable = function () {
   Object.defineProperty(
     window.Function.prototype,
     'call',
@@ -53,7 +53,7 @@ ModuleCollector.prototype.enable = function() {
     }
   );
 };
-ModuleCollector.prototype.disable = function() {
+ModuleCollector.prototype.disable = function () {
   Object.defineProperty(
     window.Function.prototype,
     'call',
@@ -63,7 +63,7 @@ ModuleCollector.prototype.disable = function() {
     }
   );
 };
-ModuleCollector.prototype.getRequire = function(index) {
+ModuleCollector.prototype.getRequire = function (index) {
   let modules = this.modules[index];
   let exports = this.exports[index];
   let moduleMap = {};
@@ -90,38 +90,38 @@ window.addEventListener('load', () => {
   moduleCollector.disable();
   let require = moduleCollector.getRequire(0);
 
-  document.addEventListener('click', function(event){
-    if(!event.target.classList.contains('expand')) return;
+  document.addEventListener('click', function (event) {
+    if (!event.target.classList.contains('expand')) return;
 
     var target = event.target;
-    while(1){
-      if(target === document.documentElement) return;
-      if(target.classList.contains('item-box')) break;
+    while (1) {
+      if (target === document.documentElement) return;
+      if (target.classList.contains('item-box')) break;
       target = target.parentNode;
     }
 
     // Quit if comments has already been inserted
-    if(target.querySelector('.js-comments')) return;
+    if (target.querySelector('.js-comments')) return;
 
     // Just add a 'Write a comment' button if there are no comments
     // to reduce requests
     var $faComment = target.querySelector('.fa-comment-o');
-    if($faComment === null ||
+    if ($faComment === null ||
        $faComment.parentNode.textContent.trim() === '0' // for /public
-      ){
-        insertWriteCommentButton(target);
-        return;
-      }
+      ) {
+      insertWriteCommentButton(target);
+      return;
+    }
 
     insertComment(target);
   });
 
-  function insertWriteCommentButton($itemBox){
+  function insertWriteCommentButton($itemBox) {
     var $button = document.createElement('a');
     $button.setAttribute('class', 'btn btn-primary');
     $button.setAttribute('href', 'javascript:void(0)');
     $button.textContent = I18n.lookup('js.item_box.comment') || 'Comment';
-    $button.addEventListener('click', function(event){
+    $button.addEventListener('click', function (event) {
       $button.remove();
       insertComment($itemBox);
     });
@@ -132,12 +132,12 @@ window.addEventListener('load', () => {
   // However, the API response doesn't give comments rendered as HTML,
   // but Qiita markdown texts.
   // So I choose to scrape comments from a HTML page.
-  function insertComment($itemBox){
+  function insertComment($itemBox) {
     var xhr = new XMLHttpRequest();
     var itemUrl = $itemBox.querySelector('.item-box-title a').href;
     xhr.open('GET', itemUrl);
-    xhr.onload = function(){
-      if(xhr.status !== 200) return;
+    xhr.onload = function () {
+      if (xhr.status !== 200) return;
 
       var responseDocument = xhr.responseXML;
       var $comments = responseDocument.querySelector('#comments');
@@ -146,7 +146,7 @@ window.addEventListener('load', () => {
       // Fix relative links
       Array.prototype.forEach.call(
         $comments.querySelectorAll('a'),
-        function(i){
+        function (i) {
           i.setAttribute('href', i.href);
         }
       );
@@ -158,13 +158,13 @@ window.addEventListener('load', () => {
       );
 
       // Enable "Thank" buttons
-      try{
+      try {
         new (require('../views/items/comment_list_view'))({
           el: $comments.querySelector('.js-comments'),
           collection: item.comments,
           enableAsyncPost: false
         });
-      }catch(e){
+      } catch (e) {
         for (let btn of $comments.querySelectorAll('.js-thank-btn')) {
           btn.style.display = 'none';
         }
@@ -172,13 +172,13 @@ window.addEventListener('load', () => {
 
       // Enable the new comment form
       var $$newComment = $comments.querySelector('.js-new-comment');
-      try{
+      try {
         new (require('../views/items/new_comment_view'))({
           el: $$newComment,
           collection: item.comments,
           enableAsyncPost: false
         });
-      }catch(e){
+      } catch (e) {
         $$newComment.style.display = 'none';
       }
 
@@ -187,7 +187,7 @@ window.addEventListener('load', () => {
         $comments.querySelectorAll(
           '.commentHeader_deleteButton a, form'
         ),
-        function(i){
+        function (i) {
           i.setAttribute('target', '_blank');
         }
       );
