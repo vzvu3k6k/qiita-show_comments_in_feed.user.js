@@ -69,7 +69,7 @@ ModuleCollector.prototype.disable = function disable() {
 ModuleCollector.prototype.getRequire = function getRequire(index) {
   const modules = this.modules[index];
   const exports = this.exports[index];
-  const moduleMap = {};
+  const moduleMap = Object.create(null);
   for (const key of Object.keys(modules)) {
     const paths = modules[key][1];
     for (const path of Object.keys(paths)) {
