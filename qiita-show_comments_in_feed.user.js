@@ -9,6 +9,7 @@
 // @match          http://qiita.com/mine
 // @grant          none
 // @run-at         document-end
+// @noframes
 // @namespace      http://vzvu3k6k.tk/
 // @license        CC0
 // ==/UserScript==
