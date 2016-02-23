@@ -11,7 +11,7 @@
 // @run-at         document-end
 // @noframes
 // @namespace      http://vzvu3k6k.tk/
-// @license        CC0
+// @license        CC0-1.0
 // ==/UserScript==
 
 /* global I18n */
