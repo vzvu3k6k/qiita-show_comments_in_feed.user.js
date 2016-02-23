@@ -88,6 +88,9 @@ function ItemBox(require, $itemBox) {
   this.require = require;
   this.$el = $itemBox;
 }
+ItemBox.isExpandButton = function isExpandButton($target) {
+  return $target.matches('.item-box .expand');
+};
 ItemBox.prototype.insert = function insert() {
   // Just add a 'Write a comment' button if there are no comments
   // to reduce requests
@@ -174,6 +177,9 @@ ItemBox.prototype.insertComment = function insertComment() {
 ItemBox.prototype.getArticleUrl = function getTitleLink() {
   return this.$el.querySelector('.item-box-title a').href;
 };
+ItemBox.prototype.isInserted = function isInserted() {
+  return !!this.$el.querySelector('.js-comments, .__comment-btn');
+};
 
 const moduleCollector = new ModuleCollector();
 moduleCollector.enable();
@@ -183,7 +189,7 @@ window.addEventListener('load', () => {
   const require = moduleCollector.getRequire(0);
 
   document.addEventListener('click', (event) => {
-    if (!event.target.classList.contains('expand')) return;
+    if (!ItemBox.isExpandButton(event.target)) return;
 
     let $target = event.target;
     for (;;) {
@@ -192,9 +198,9 @@ window.addEventListener('load', () => {
       $target = $target.parentNode;
     }
 
-    // Quit if comments or a button to write a comment has already been inserted
-    if ($target.querySelector('.js-comments, .__comment-btn')) return;
-
-    (new ItemBox(require, $target)).insert();
+    const itemBox = new ItemBox(require, $target);
+    if (!itemBox.isInserted()) {
+      itemBox.insert();
+    }
   });
 });
