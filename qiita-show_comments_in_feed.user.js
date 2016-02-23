@@ -146,21 +146,21 @@ ItemBox.prototype.insertComment = function insertComment() {
         enableAsyncPost: false,
       });
     } catch (e) {
-      for (const btn of $comments.querySelectorAll('.js-thank-btn')) {
-        btn.style.display = 'none';
+      for (const $btn of $comments.querySelectorAll('.js-thank-btn')) {
+        $btn.style.display = 'none';
       }
     }
 
     // Enable the new comment form
-    const $$newComment = $comments.querySelector('.js-new-comment');
+    const $newComment = $comments.querySelector('.js-new-comment');
     try {
       new (this.require('../views/items/new_comment_view'))({ // eslint-disable-line no-new
-        el: $$newComment,
+        el: $newComment,
         collection: item.comments,
         enableAsyncPost: false,
       });
     } catch (e) {
-      $$newComment.style.display = 'none';
+      $newComment.style.display = 'none';
     }
 
     // Open a new window when posting or deleting a comment
@@ -182,16 +182,16 @@ window.addEventListener('load', () => {
   document.addEventListener('click', (event) => {
     if (!event.target.classList.contains('expand')) return;
 
-    let target = event.target;
+    let $target = event.target;
     for (;;) {
-      if (target === document.documentElement) return;
-      if (target.classList.contains('item-box')) break;
-      target = target.parentNode;
+      if ($target === document.documentElement) return;
+      if ($target.classList.contains('item-box')) break;
+      $target = $target.parentNode;
     }
 
     // Quit if comments has already been inserted
-    if (target.querySelector('.js-comments')) return;
+    if ($target.querySelector('.js-comments')) return;
 
-    (new ItemBox(require, target)).insert();
+    (new ItemBox(require, $target)).insert();
   });
 });
