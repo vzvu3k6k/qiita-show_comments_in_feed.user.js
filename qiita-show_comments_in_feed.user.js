@@ -92,6 +92,13 @@ function ItemBox(require, $itemBox) {
 ItemBox.isExpandButton = function isExpandButton($target) {
   return $target.matches('.item-box .expand');
 };
+ItemBox.findItemBoxNode = function findItemBoxNode($start) {
+  for (let $target = $start; ;) {
+    if ($target === document.documentElement) return null;
+    if ($target.classList.contains('item-box')) return $target;
+    $target = $target.parentNode;
+  }
+};
 ItemBox.prototype.insert = function insert() {
   // Just add a 'Write a comment' button if there are no comments
   // to reduce requests
@@ -192,14 +199,9 @@ window.addEventListener('load', () => {
   document.addEventListener('click', (event) => {
     if (!ItemBox.isExpandButton(event.target)) return;
 
-    let $target = event.target;
-    for (;;) {
-      if ($target === document.documentElement) return;
-      if ($target.classList.contains('item-box')) break;
-      $target = $target.parentNode;
-    }
-
-    const itemBox = new ItemBox(require, $target);
+    const $itemBox = ItemBox.findItemBoxNode(event.target);
+    if (!$itemBox) return;
+    const itemBox = new ItemBox(require, $itemBox);
     if (!itemBox.isInserted()) {
       itemBox.insert();
     }
