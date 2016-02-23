@@ -84,6 +84,94 @@ ModuleCollector.prototype.getRequire = function getRequire(index) {
   };
 };
 
+function ItemBox(require, $itemBox) {
+  this.require = require;
+  this.$el = $itemBox;
+}
+ItemBox.prototype.insert = function insert() {
+  // Just add a 'Write a comment' button if there are no comments
+  // to reduce requests
+  const $faComment = this.$el.querySelector('.fa-comment-o');
+  if ($faComment === null ||
+      $faComment.parentNode.textContent.trim() === '0' // for /public
+     ) {
+    this.insertWriteCommentButton();
+    return;
+  }
+
+  this.insertComment();
+};
+ItemBox.prototype.insertWriteCommentButton = function insertWriteCommentButton() {
+  const $button = document.createElement('a');
+  $button.setAttribute('class', 'btn btn-primary');
+  $button.setAttribute('href', '#comments');
+  $button.textContent = I18n.lookup('js.item_box.comment') || 'Comment';
+  $button.addEventListener('click', () => {
+    $button.remove();
+    this.insertComment();
+  });
+  this.$el.querySelector('.item-body-wrapper').appendChild($button);
+};
+ItemBox.prototype.insertComment = function insertComment() {
+  // Comments for a specified post can be retrieved with Qiita API v2.
+  // However, the API response doesn't give comments rendered as HTML,
+  // but Qiita markdown texts.
+  // So I choose to scrape comments from a HTML page.
+  const xhr = new XMLHttpRequest();
+  const itemUrl = this.$el.querySelector('.item-box-title a').href;
+  xhr.open('GET', itemUrl);
+  xhr.onload = () => {
+    if (xhr.status !== 200) return;
+
+    const responseDocument = xhr.responseXML;
+    const $comments = responseDocument.querySelector('#comments');
+    $comments.removeAttribute('id');
+
+    // Fix relative links
+    for (const $link of $comments.querySelectorAll('a')) {
+      $link.setAttribute('href', $link.href);
+    }
+
+    this.$el.querySelector('.item-body-wrapper').appendChild($comments);
+
+    const item = new (this.require('../models/item'))(
+      JSON.parse(responseDocument.querySelector('#js-item').textContent)
+    );
+
+    // Enable "Thank" buttons
+    try {
+      new (this.require('../views/items/comment_list_view'))({ // eslint-disable-line no-new
+        el: $comments.querySelector('.js-comments'),
+        collection: item.comments,
+        enableAsyncPost: false,
+      });
+    } catch (e) {
+      for (const btn of $comments.querySelectorAll('.js-thank-btn')) {
+        btn.style.display = 'none';
+      }
+    }
+
+    // Enable the new comment form
+    const $$newComment = $comments.querySelector('.js-new-comment');
+    try {
+      new (this.require('../views/items/new_comment_view'))({ // eslint-disable-line no-new
+        el: $$newComment,
+        collection: item.comments,
+        enableAsyncPost: false,
+      });
+    } catch (e) {
+      $$newComment.style.display = 'none';
+    }
+
+    // Open a new window when posting or deleting a comment
+    for (const $el of $comments.querySelectorAll('.commentHeader_deleteButton a, form')) {
+      $el.setAttribute('target', '_blank');
+    }
+  };
+  xhr.responseType = 'document';
+  xhr.send();
+};
+
 const moduleCollector = new ModuleCollector();
 moduleCollector.enable();
 
@@ -104,88 +192,6 @@ window.addEventListener('load', () => {
     // Quit if comments has already been inserted
     if (target.querySelector('.js-comments')) return;
 
-    // Just add a 'Write a comment' button if there are no comments
-    // to reduce requests
-    const $faComment = target.querySelector('.fa-comment-o');
-    if ($faComment === null ||
-       $faComment.parentNode.textContent.trim() === '0' // for /public
-      ) {
-      insertWriteCommentButton(target); // eslint-disable-line no-use-before-define
-      return;
-    }
-
-    insertComment(target); // eslint-disable-line no-use-before-define
+    (new ItemBox(require, target)).insert();
   });
-
-  function insertWriteCommentButton($itemBox) {
-    const $button = document.createElement('a');
-    $button.setAttribute('class', 'btn btn-primary');
-    $button.setAttribute('href', '#comments');
-    $button.textContent = I18n.lookup('js.item_box.comment') || 'Comment';
-    $button.addEventListener('click', () => {
-      $button.remove();
-      insertComment($itemBox); // eslint-disable-line no-use-before-define
-    });
-    $itemBox.querySelector('.item-body-wrapper').appendChild($button);
-  }
-
-  // Comments for a specified post can be retrieved with Qiita API v2.
-  // However, the API response doesn't give comments rendered as HTML,
-  // but Qiita markdown texts.
-  // So I choose to scrape comments from a HTML page.
-  function insertComment($itemBox) {
-    const xhr = new XMLHttpRequest();
-    const itemUrl = $itemBox.querySelector('.item-box-title a').href;
-    xhr.open('GET', itemUrl);
-    xhr.onload = () => {
-      if (xhr.status !== 200) return;
-
-      const responseDocument = xhr.responseXML;
-      const $comments = responseDocument.querySelector('#comments');
-      $comments.removeAttribute('id');
-
-      // Fix relative links
-      for (const $link of $comments.querySelectorAll('a')) {
-        $link.setAttribute('href', $link.href);
-      }
-
-      $itemBox.querySelector('.item-body-wrapper').appendChild($comments);
-
-      const item = new (require('../models/item'))(
-        JSON.parse(responseDocument.querySelector('#js-item').textContent)
-      );
-
-      // Enable "Thank" buttons
-      try {
-        new (require('../views/items/comment_list_view'))({ // eslint-disable-line no-new
-          el: $comments.querySelector('.js-comments'),
-          collection: item.comments,
-          enableAsyncPost: false,
-        });
-      } catch (e) {
-        for (const btn of $comments.querySelectorAll('.js-thank-btn')) {
-          btn.style.display = 'none';
-        }
-      }
-
-      // Enable the new comment form
-      const $$newComment = $comments.querySelector('.js-new-comment');
-      try {
-        new (require('../views/items/new_comment_view'))({ // eslint-disable-line no-new
-          el: $$newComment,
-          collection: item.comments,
-          enableAsyncPost: false,
-        });
-      } catch (e) {
-        $$newComment.style.display = 'none';
-      }
-
-      // Open a new window when posting or deleting a comment
-      for (const $el of $comments.querySelectorAll('.commentHeader_deleteButton a, form')) {
-        $el.setAttribute('target', '_blank');
-      }
-    };
-    xhr.responseType = 'document';
-    xhr.send();
-  }
 });
