@@ -103,7 +103,7 @@ ItemBox.prototype.insert = function insert() {
 };
 ItemBox.prototype.insertWriteCommentButton = function insertWriteCommentButton() {
   const $button = document.createElement('a');
-  $button.setAttribute('class', 'btn btn-primary');
+  $button.setAttribute('class', 'btn btn-primary __comment-btn');
   $button.setAttribute('href', '#comments');
   $button.textContent = I18n.lookup('js.item_box.comment') || 'Comment';
   $button.addEventListener('click', () => {
@@ -189,8 +189,8 @@ window.addEventListener('load', () => {
       $target = $target.parentNode;
     }
 
-    // Quit if comments has already been inserted
-    if ($target.querySelector('.js-comments')) return;
+    // Quit if comments or a button to write a comment has already been inserted
+    if ($target.querySelector('.js-comments, .__comment-btn')) return;
 
     (new ItemBox(require, $target)).insert();
   });
