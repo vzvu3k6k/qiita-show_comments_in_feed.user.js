@@ -104,9 +104,10 @@ ItemBox.prototype.insert = function insert() {
 ItemBox.prototype.insertWriteCommentButton = function insertWriteCommentButton() {
   const $button = document.createElement('a');
   $button.setAttribute('class', 'btn btn-primary __comment-btn');
-  $button.setAttribute('href', '#comments');
+  $button.setAttribute('href', `${this.getArticleUrl()}#comments`);
   $button.textContent = I18n.lookup('js.item_box.comment') || 'Comment';
-  $button.addEventListener('click', () => {
+  $button.addEventListener('click', (event) => {
+    event.preventDefault();
     $button.remove();
     this.insertComment();
   });
@@ -118,8 +119,7 @@ ItemBox.prototype.insertComment = function insertComment() {
   // but Qiita markdown texts.
   // So I choose to scrape comments from a HTML page.
   const xhr = new XMLHttpRequest();
-  const itemUrl = this.$el.querySelector('.item-box-title a').href;
-  xhr.open('GET', itemUrl);
+  xhr.open('GET', this.getArticleUrl());
   xhr.onload = () => {
     if (xhr.status !== 200) return;
 
@@ -170,6 +170,9 @@ ItemBox.prototype.insertComment = function insertComment() {
   };
   xhr.responseType = 'document';
   xhr.send();
+};
+ItemBox.prototype.getArticleUrl = function getTitleLink() {
+  return this.$el.querySelector('.item-box-title a').href;
 };
 
 const moduleCollector = new ModuleCollector();
