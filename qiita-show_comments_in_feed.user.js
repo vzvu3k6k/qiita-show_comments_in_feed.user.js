@@ -4,7 +4,7 @@
 // @version        0.5.0
 // @author         vzvu3k6k
 // @match          http://qiita.com/
-// @match          http://qiita.com/public
+// @match          http://qiita.com/items
 // @match          http://qiita.com/stock
 // @match          http://qiita.com/mine
 // @grant          none
@@ -104,7 +104,7 @@ ItemBox.prototype.insert = function insert() {
   // to reduce requests
   const $faComment = this.$el.querySelector('.fa-comment-o');
   if ($faComment === null ||
-      $faComment.parentNode.textContent.trim() === '0' // for /public
+      $faComment.parentNode.textContent.trim() === '0' // for /items
      ) {
     this.insertWriteCommentButton();
     return;
