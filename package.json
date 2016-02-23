@@ -1,6 +1,6 @@
 {
   "name": "qiita-show_comments_in_feed.user.js",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "When a post is opened in feed, inserts comments for it",
   "main": "qiita-show_comments_in_feed.user.js",
   "scripts": {
