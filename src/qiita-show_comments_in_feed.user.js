@@ -63,20 +63,24 @@ class ModuleCollector {
     });
   }
 
-  getRequire(index) {
-    const modules = this.modules[index];
-    const caches = this.caches[index];
-    const moduleMap = Object.create(null);
-    for (const key of Object.keys(modules)) {
-      const paths = modules[key][1];
-      for (const path of Object.keys(paths)) {
-        moduleMap[path] = paths[path];
+  getModuleMaps() {
+    return this.modules.map((module, index) => {
+      const map = Object.create(null);
+      for (const key of Object.keys(module)) {
+        const paths = module[key][1];
+        for (const path of Object.keys(paths)) {
+          map[path] = this.caches[index][paths[path]];
+        }
       }
-    }
+      return map;
+    });
+  }
+
+  getRequire() {
+    const moduleMaps = this.getModuleMaps();
     return (path) => {
-      const module = caches[moduleMap[path]];
-      if (module && module.exports) {
-        return module.exports;
+      for (const map of moduleMaps) {
+        if (map[path] && map[path].exports) return map[path].exports;
       }
       throw new Error(`[UserScript - Qiita: Show comments in feed] Cannot find module ${path}`);
     };
@@ -201,7 +205,7 @@ moduleCollector.enable();
 
 window.addEventListener('load', () => {
   moduleCollector.disable();
-  const require = moduleCollector.getRequire(0);
+  const require = moduleCollector.getRequire();
 
   document.addEventListener('click', (event) => {
     if (!ItemBox.isExpandButton(event.target)) return;
