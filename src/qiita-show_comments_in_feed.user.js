@@ -23,7 +23,7 @@ class ModuleCollector {
     this.originalCall = window.Function.prototype.call;
     this.callWithTrap = this.getTrapCall();
     this.modules = [];
-    this.exports = [];
+    this.caches = [];
   }
 
   getTrapCall() {
@@ -39,7 +39,7 @@ class ModuleCollector {
         if (prevModules !== args[5]) {
           prevModules = args[5];
           self.modules.push(args[5]);
-          self.exports.push(args[6]);
+          self.caches.push(args[6]);
         }
       }
 
@@ -65,7 +65,7 @@ class ModuleCollector {
 
   getRequire(index) {
     const modules = this.modules[index];
-    const exports = this.exports[index];
+    const caches = this.caches[index];
     const moduleMap = Object.create(null);
     for (const key of Object.keys(modules)) {
       const paths = modules[key][1];
@@ -74,7 +74,7 @@ class ModuleCollector {
       }
     }
     return (path) => {
-      const module = exports[moduleMap[path]];
+      const module = caches[moduleMap[path]];
       if (module && module.exports) {
         return module.exports;
       }
