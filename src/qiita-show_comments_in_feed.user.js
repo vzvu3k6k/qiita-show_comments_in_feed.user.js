@@ -29,7 +29,7 @@ class ModuleCollector {
   getTrapCall() {
     let prevModules;
     const self = this;
-    return function trapCall(...args) {
+    return function trapCall(thisArg, ...args) {
       self.disable(); // Avoid infinite recursion
 
       // Function.prototype.toString() of Chromium keeps spaces,
@@ -43,7 +43,7 @@ class ModuleCollector {
         }
       }
 
-      const retval = this.apply(args[0], args.slice(1));
+      const retval = this.apply(thisArg, args);
       self.enable();
       return retval;
     };
