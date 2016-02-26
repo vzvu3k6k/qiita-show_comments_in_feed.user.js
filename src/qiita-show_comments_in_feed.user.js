@@ -36,10 +36,10 @@ class ModuleCollector {
       // but that of Firefox normalizes spaces like `function (require,module,exports)`.
       const funcPattern = /^function\s*\(require,\s*module,\s*exports\)/;
       if (funcPattern.test(this.toString())) {
-        if (prevModules !== args[5]) {
-          prevModules = args[5];
-          self.modules.push(args[5]);
-          self.caches.push(args[6]);
+        if (prevModules !== args[4]) {
+          prevModules = args[4];
+          self.modules.push(args[4]);
+          self.caches.push(args[5]);
         }
       }
 
