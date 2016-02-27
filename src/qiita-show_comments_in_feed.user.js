@@ -16,77 +16,6 @@
 
 /* global I18n */
 
-// Qiita uses browserify and we can't access its view or model modules directly.
-// Instead we get them by intercepting a browserify function call.
-class ModuleCollector {
-  constructor() {
-    this.originalCall = window.Function.prototype.call;
-    this.callWithTrap = this.getTrapCall();
-    this.modules = [];
-    this.caches = [];
-  }
-
-  getTrapCall() {
-    let prevModules;
-    const self = this;
-    return function trapCall(thisArg, ...args) {
-      self.disable(); // Avoid infinite recursion
-
-      // Function.prototype.toString() of Chromium keeps spaces,
-      // but that of Firefox normalizes spaces like `function (require,module,exports)`.
-      const funcPattern = /^function\s*\(require,\s*module,\s*exports\)/;
-      if (funcPattern.test(this.toString())) {
-        if (prevModules !== args[4]) {
-          prevModules = args[4];
-          self.modules.push(args[4]);
-          self.caches.push(args[5]);
-        }
-      }
-
-      const retval = this.apply(thisArg, args);
-      self.enable();
-      return retval;
-    };
-  }
-
-  enable() {
-    Object.defineProperty(window.Function.prototype, 'call', {
-      value: this.callWithTrap,
-      configurable: true,
-    });
-  }
-
-  disable() {
-    Object.defineProperty(window.Function.prototype, 'call', {
-      value: this.originalCall,
-      configurable: true,
-    });
-  }
-
-  getModuleMaps() {
-    return this.modules.map((module, index) => {
-      const map = Object.create(null);
-      for (const key of Object.keys(module)) {
-        const paths = module[key][1];
-        for (const path of Object.keys(paths)) {
-          map[path] = this.caches[index][paths[path]];
-        }
-      }
-      return map;
-    });
-  }
-
-  getRequire() {
-    const moduleMaps = this.getModuleMaps();
-    return (path) => {
-      for (const map of moduleMaps) {
-        if (map[path] && map[path].exports) return map[path].exports;
-      }
-      throw new Error(`[UserScript - Qiita: Show comments in feed] Cannot find module ${path}`);
-    };
-  }
-}
-
 class ItemBox {
   constructor(require, $itemBox) {
     this.require = require;
@@ -200,12 +129,14 @@ class ItemBox {
   }
 }
 
-const moduleCollector = new ModuleCollector();
-moduleCollector.enable();
+// Qiita uses browserify and we can't access its view or model modules directly.
+const Conjurify = require('@vzvu3k6k/conjurify');
+const conjurify = new Conjurify(window);
+conjurify.setTrap();
 
 window.addEventListener('load', () => {
-  moduleCollector.disable();
-  const require = moduleCollector.getRequire();
+  conjurify.removeTrap();
+  const require = conjurify.getRequire();
 
   document.addEventListener('click', (event) => {
     if (!ItemBox.isExpandButton(event.target)) return;
